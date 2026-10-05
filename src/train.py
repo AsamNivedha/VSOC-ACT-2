@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import joblib
@@ -21,7 +22,7 @@ DATA_PATH = BASE_DIR / "data.csv"
 MODEL_DIR = BASE_DIR / "models"
 
 MODEL_PATH = MODEL_DIR / "house_price_pipeline.pkl"
-
+METRICS_PATH = MODEL_DIR / "model_metrics.json"
 
 NUMERIC_FEATURES = [
     "area",
@@ -175,7 +176,21 @@ def main():
 
     joblib.dump(best_pipeline, MODEL_PATH)
 
+    metrics = {
+        "selected_model": best_model_name,
+        "cross_validation": results,
+        "test_set": {
+            "MAE": test_mae,
+            "RMSE": test_rmse,
+            "R2": test_r2,
+        },
+    }
+
+    with METRICS_PATH.open("w") as file:
+        json.dump(metrics, file, indent=4)
+
     print(f"\nPipeline saved to: {MODEL_PATH}")
+    print(f"Metrics saved to: {METRICS_PATH}")
 
 
 if __name__ == "__main__":

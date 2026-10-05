@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import joblib
 import pandas as pd
@@ -21,6 +22,7 @@ DATA_PATH = BASE_DIR / "data.csv"
 MODEL_DIR = BASE_DIR / "models"
 
 MODEL_PATH = MODEL_DIR / "house_price_pipeline.pkl"
+METRICS_PATH = MODEL_DIR / "model_metrics.json"
 
 
 NUMERIC_FEATURES = [
@@ -41,10 +43,41 @@ CATEGORICAL_FEATURES = [
     "furnishingstatus",
 ]
 
+REQUIRED_COLUMNS = set(
+    NUMERIC_FEATURES + CATEGORICAL_FEATURES + ["price"]
+)
 
-def load_data():
-    df = pd.read_csv(DATA_PATH)
+
+def load_data(path=DATA_PATH):
+    df = pd.read_csv(path)
+
+    missing_columns = REQUIRED_COLUMNS - set(df.columns)
+    if missing_columns:
+        raise ValueError(
+            "Dataset is missing required columns: "
+            + ", ".join(sorted(missing_columns))
+        )
+
+    if df.empty:
+        raise ValueError("Dataset is empty.")
+
+    if df[list(REQUIRED_COLUMNS)].isnull().any().any():
+        raise ValueError("Dataset contains missing values.")
+
+    if (df["price"] <= 0).any():
+        raise ValueError("Price values must be greater than zero.")
+
+    for column in NUMERIC_FEATURES:
+        if not pd.api.types.is_numeric_dtype(df[column]):
+            raise ValueError(
+                f"Column '{column}' must contain numeric values."
+            )
+
     df = df.drop_duplicates()
+
+    if df.empty:
+        raise ValueError("Dataset contains no rows after removing duplicates.")
+
     return df
 
 
@@ -93,16 +126,13 @@ def main():
 
     models = {
         "Linear Regression": LinearRegression(),
-
         "Random Forest": RandomForestRegressor(
             n_estimators=100,
             random_state=42,
         ),
-
         "Gradient Boosting": GradientBoostingRegressor(
             random_state=42,
         ),
-
         "Extra Trees": ExtraTreesRegressor(
             n_estimators=100,
             random_state=42,
@@ -153,7 +183,6 @@ def main():
     print(f"Best model: {best_model_name}")
 
     best_pipeline = build_pipeline(models[best_model_name])
-
     best_pipeline.fit(X_train, y_train)
 
     test_predictions = best_pipeline.predict(X_test)
@@ -175,7 +204,21 @@ def main():
 
     joblib.dump(best_pipeline, MODEL_PATH)
 
+    metrics = {
+        "selected_model": best_model_name,
+        "cross_validation": results,
+        "test_set": {
+            "MAE": test_mae,
+            "RMSE": test_rmse,
+            "R2": test_r2,
+        },
+    }
+
+    with METRICS_PATH.open("w") as file:
+        json.dump(metrics, file, indent=4)
+
     print(f"\nPipeline saved to: {MODEL_PATH}")
+    print(f"Metrics saved to: {METRICS_PATH}")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-from pathlib import Path
 import json
+from pathlib import Path
 
 import joblib
 import pandas as pd
@@ -23,7 +23,6 @@ MODEL_DIR = BASE_DIR / "models"
 
 MODEL_PATH = MODEL_DIR / "house_price_pipeline.pkl"
 METRICS_PATH = MODEL_DIR / "model_metrics.json"
-
 
 NUMERIC_FEATURES = [
     "area",

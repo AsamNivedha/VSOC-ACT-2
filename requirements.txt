@@ -4,4 +4,6 @@ matplotlib
 seaborn
 scikit-learn
 joblib
-streamlitpytest
+streamlit
+pytest
+

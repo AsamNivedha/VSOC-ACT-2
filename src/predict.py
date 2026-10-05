@@ -1,87 +1,95 @@
-import streamlit as st
-import pandas as pd
-import joblib
+from pathlib import Path
 
-model = joblib.load("../models/house_price_model.pkl")
-feature_columns = joblib.load("../models/feature_columns.pkl")
+import joblib
+import pandas as pd
+import streamlit as st
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "models" / "house_price_pipeline.pkl"
+
+model = joblib.load(MODEL_PATH)
+
 
 st.set_page_config(
     page_title="House Price Predictor",
     page_icon="🏠",
-    layout="centered"
+    layout="centered",
 )
 
 st.title("🏠 House Price Prediction")
 st.write("Enter the details of the house to predict its price.")
 
+
 area = st.number_input(
     "Area (sq ft)",
     min_value=0,
-    value=5000
+    value=5000,
 )
 
 bedrooms = st.number_input(
     "Number of Bedrooms",
     min_value=0,
     value=3,
-    step=1
+    step=1,
 )
 
 bathrooms = st.number_input(
     "Number of Bathrooms",
     min_value=0,
     value=2,
-    step=1
+    step=1,
 )
 
 stories = st.number_input(
     "Number of Stories",
     min_value=0,
     value=2,
-    step=1
+    step=1,
 )
 
 mainroad = st.selectbox(
     "Main Road",
-    ["yes", "no"]
+    ["yes", "no"],
 )
 
 guestroom = st.selectbox(
     "Guest Room",
-    ["yes", "no"]
+    ["yes", "no"],
 )
 
 basement = st.selectbox(
     "Basement",
-    ["yes", "no"]
+    ["yes", "no"],
 )
 
 hotwaterheating = st.selectbox(
     "Hot Water Heating",
-    ["yes", "no"]
+    ["yes", "no"],
 )
 
 airconditioning = st.selectbox(
     "Air Conditioning",
-    ["yes", "no"]
+    ["yes", "no"],
 )
 
 parking = st.number_input(
     "Parking Spaces",
     min_value=0,
     value=2,
-    step=1
+    step=1,
 )
 
 prefarea = st.selectbox(
     "Preferred Area",
-    ["yes", "no"]
+    ["yes", "no"],
 )
 
 furnishingstatus = st.selectbox(
     "Furnishing Status",
-    ["furnished", "semi-furnished", "unfurnished"]
+    ["furnished", "semi-furnished", "unfurnished"],
 )
+
 
 input_data = pd.DataFrame({
     "area": [area],
@@ -95,22 +103,13 @@ input_data = pd.DataFrame({
     "airconditioning": [airconditioning],
     "parking": [parking],
     "prefarea": [prefarea],
-    "furnishingstatus": [furnishingstatus]
+    "furnishingstatus": [furnishingstatus],
 })
 
-input_data = pd.get_dummies(
-    input_data,
-    drop_first=True
-)
-
-input_data = input_data.reindex(
-    columns=feature_columns,
-    fill_value=0
-)
 
 if st.button("Predict House Price"):
-    prediction = model.predict(input_data)
+    prediction = model.predict(input_data)[0]
 
     st.success(
-        f"Predicted House Price: ₹{prediction[0]:,.2f}"
+        f"Predicted House Price: ₹{prediction:,.2f}"
     )

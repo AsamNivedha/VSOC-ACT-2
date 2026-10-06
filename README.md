@@ -1,6 +1,6 @@
-# HomeValue — House Price Predictor
+# House Price Predictor
 
-HomeValue is a machine learning web application that estimates house prices based on property characteristics. It combines a trained machine learning pipeline with an interactive Streamlit interface to provide quick price estimates from user-provided property details.
+House Price Predictor learning web application that estimates house prices based on property characteristics. It combines a trained machine learning pipeline with an interactive Streamlit interface to provide quick price estimates from user-provided property details.
 
 ## Features
 

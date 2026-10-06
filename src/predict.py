@@ -1,15 +1,10 @@
-from pathlib import Path
-
-import joblib
 import pandas as pd
 import streamlit as st
 
+from src.predictor import load_model, predict_price
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-MODEL_PATH = BASE_DIR / "models" / "house_price_pipeline.pkl"
 
-model = joblib.load(MODEL_PATH)
-
+model = load_model()
 
 st.set_page_config(
     page_title="House Price Predictor",
@@ -21,7 +16,6 @@ st.title("🏠 House Price Prediction")
 st.write(
     "Enter the property details below to estimate its market price."
 )
-
 
 st.subheader("Property Details")
 
@@ -74,43 +68,25 @@ with col2:
         ["furnished", "semi-furnished", "unfurnished"],
     )
 
-
 st.subheader("Property Features")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    mainroad = st.selectbox(
-        "Main Road",
-        ["yes", "no"],
-    )
-
-    guestroom = st.selectbox(
-        "Guest Room",
-        ["yes", "no"],
-    )
-
-    basement = st.selectbox(
-        "Basement",
-        ["yes", "no"],
-    )
-
-    prefarea = st.selectbox(
-        "Preferred Area",
-        ["yes", "no"],
-    )
+    mainroad = st.selectbox("Main Road", ["yes", "no"])
+    guestroom = st.selectbox("Guest Room", ["yes", "no"])
+    basement = st.selectbox("Basement", ["yes", "no"])
+    prefarea = st.selectbox("Preferred Area", ["yes", "no"])
 
 with col2:
     hotwaterheating = st.selectbox(
         "Hot Water Heating",
         ["yes", "no"],
     )
-
     airconditioning = st.selectbox(
         "Air Conditioning",
         ["yes", "no"],
     )
-
 
 input_data = pd.DataFrame({
     "area": [area],
@@ -127,14 +103,13 @@ input_data = pd.DataFrame({
     "furnishingstatus": [furnishingstatus],
 })
 
-
 if st.button(
     "Predict House Price",
     type="primary",
     use_container_width=True,
 ):
     try:
-        prediction = model.predict(input_data)[0]
+        prediction = predict_price(model, input_data)[0]
 
         st.success(
             f"Estimated House Price: ₹{prediction:,.2f}"
@@ -145,10 +120,8 @@ if st.button(
             "and should not be treated as a guaranteed market price."
         )
 
-    except Exception as error:
+    except Exception:
         st.error(
             "Unable to generate a prediction. "
             "Please check the entered values and try again."
         )
-        st.exception(error)
-
